@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#132d45">
+  <meta name="description" content="An original, interactive 50-minute Cambridge B2 First-style Reading and Use of English practice mock, with 37 questions and feedback.">
+  <title>B2 First | 50-minute Practice Mock</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<header class="masthead">
+ <div class="shell masthead-inner">
+  <a class="brand" href="./" aria-label="B2 Practice home"><span class="brand-logo">B<span>2</span></span><span>FIRST <small>Practice Studio</small></span></a>
+  <div class="masthead-note"><span class="status-light"></span>Independent exam practice <span class="hidden-phone">· not affiliated with Cambridge English</span></div>
+ </div>
+</header>
+<main id="landing" class="shell hero">
+ <div class="eyebrow"><span class="line"></span> EXAM PRACTICE / B2 FIRST</div>
+ <h1>Ready to put your <em>English</em> to the test?</h1>
+ <p class="intro">A focused 50-minute mock designed around the seven Cambridge B2 First Reading and Use of English task types. Work at your own pace within the time limit, then see your score and explanations.</p>
+ <div class="stats">
+   <div><strong>50 <small>min</small></strong><span>Countdown timer</span></div>
+   <div><strong>37</strong><span>Questions</span></div>
+   <div><strong>50</strong><span>Available marks</span></div>
+   <div><strong>7</strong><span>Exam-style sections</span></div>
+ </div>
+ <section class="start-card" aria-labelledby="startHeading">
+  <div>
+   <div class="card-label">YOUR PRACTICE SESSION</div>
+   <h2 id="startHeading">Begin your mock exam</h2>
+   <p>Answers stay private on this device until you decide to share your results. You can move between sections and return to unfinished questions.</p>
+  </div>
+  <div class="start-actions">
+   <label for="studentName">Your first name <span>(optional)</span></label>
+   <input id="studentName" maxlength="50" autocomplete="given-name" placeholder="e.g. Sofia">
+   <button id="startBtn" class="primary-btn">Start 50-minute exam <span aria-hidden="true">→</span></button>
+   <button id="resumeBtn" class="subtle-btn" hidden>Resume saved exam</button>
+  </div>
+ </section>
+ <div class="note-strip"><span aria-hidden="true">ⓘ</span> This is an original, shortened practice mock, not an official Cambridge paper or an official Cambridge score. No listening, speaking or full-length writing paper is included.</div>
+</main>
+<section id="exam" class="shell exam-layout" hidden>
+ <div class="exam-topbar">
+  <div><div class="eyebrow">B2 FIRST / PRACTICE EXAM</div><h1>Reading &amp; Use of English</h1><p id="welcomeName" class="welcome-name"></p></div>
+  <div class="timer-panel" aria-live="off"><span>TIME REMAINING</span><strong id="timer" class="digits">50:00</strong></div>
+ </div>
+ <div class="progress-caption"><span id="progressLabel">0 of 37 questions answered</span><span id="sectionCount">Section 1 of 7</span></div>
+ <div class="progress-rail"><div id="progressFill" class="progress-fill"></div></div>
+ <nav id="sectionNav" class="section-nav" aria-label="Exam sections"></nav>
+ <div class="exam-main">
+  <div class="section-header">
+   <div><span id="sectionNumber" class="eyebrow">PART 1 / 7</span><h2 id="sectionTitle"></h2><p id="sectionInstructions"></p></div>
+   <span id="sectionTime" class="time-estimate"></span>
+  </div>
+  <div id="examContent" class="task-grid"></div>
+  <div class="exam-bottom">
+   <button id="backBtn" class="outline-btn">← Previous section</button>
+   <span class="save-note"><span class="save-dot"></span>Answers saved on this device</span>
+   <button id="nextBtn" class="primary-btn">Next section →</button>
+  </div>
+ </div>
+ <div class="finish-row"><button id="finishBtn" class="finish-btn">Finish &amp; mark my answers</button><p>Submit when you are ready. The test submits automatically when time runs out.</p></div>
+</section>
+<section id="results" class="shell results-page" hidden>
+  <div class="eyebrow">PRACTICE REPORT / B2 FIRST</div>
+  <h1 id="resultsTitle">Your results</h1>
+  <p class="results-intro">Great work getting through the practice. Review the explanations and choose what to revise next.</p>
+  <div class="results-hero">
+    <div class="score-circle"><strong id="scoreValue">0</strong><span>out of 50 marks</span></div>
+    <div class="score-message"><span id="resultBand" class="result-pill"></span><h2 id="resultHeadline"></h2><p id="resultMessage"></p><p class="disclaimer">Practice score only — this percentage is not a Cambridge English Scale score or an official pass/fail prediction.</p></div>
+  </div>
+  <div id="sectionScores" class="section-scores"></div>
+  <div class="share-card"><div><h3>Send your result to your teacher</h3><p>Copy a result link or a text report. Your answers are not uploaded to a server; the link contains your result information, so share it only with people you trust.</p></div><div class="share-buttons"><button id="copyLinkBtn" class="primary-btn">Copy results link</button><button id="copyReportBtn" class="outline-btn">Copy text report</button><button id="printBtn" class="subtle-btn">Print / save PDF</button></div><div id="copyStatus" role="status"></div></div>
+  <h2 class="review-title">Answer review &amp; explanations</h2>
+  <p class="review-intro">Expand each section to see the correct answers and explanations. A transformation is automatically awarded either 0 or 2 marks based on accepted answers; a human teacher can review alternatives.</p>
+  <div id="reviewSections"></div>
+  <div class="new-test"><button id="restartBtn" class="outline-btn">↻ Start a new attempt</button></div>
+</section>
+<footer><div class="shell footer-inner"><span>50-minute B2 First-style practice mock</span><span>Original educational material · No account required</span></div></footer>
+<script src="./test-data.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>

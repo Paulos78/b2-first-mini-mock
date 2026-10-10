@@ -1,0 +1,1 @@
+Original 50-minute Cambridge B2 First-style practice mock. 37 questions, 7 shortened Reading and Use of English sections, local autosave, self-marking and shareable result links. Unaffiliated with Cambridge English.
