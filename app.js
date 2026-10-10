@@ -2,7 +2,7 @@
 (function () {
  const $ = (id) => document.getElementById(id);
  const KEY = "b2-first-mock-oct2026-v2";
- const REPORT_ADDRESS = "pauljbean78@gmail.com";
+ const REPORT_ADDRESS = "6fb9c839342d08b12e0889243652a8f4";
  const REPORT_API = "https://formsubmit.co/ajax/" + REPORT_ADDRESS;
  const all = EXAM.sections.flatMap((s) => s.questions.map((q) => ({...q, type:s.type, section:s.title, max:s.type==="transform"||s.type==="reading-choice"||s.type==="gapped"?2:1})));
  const byId = Object.fromEntries(all.map(q=>[q.id,q]));
