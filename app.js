@@ -1,10 +1,12 @@
 "use strict";
 (function () {
  const $ = (id) => document.getElementById(id);
- const KEY = "b2-first-mock-oct2026-v1";
+ const KEY = "b2-first-mock-oct2026-v2";
+ const REPORT_ADDRESS = "pauljbean78@gmail.com";
+ const REPORT_API = "https://formsubmit.co/ajax/" + REPORT_ADDRESS;
  const all = EXAM.sections.flatMap((s) => s.questions.map((q) => ({...q, type:s.type, section:s.title, max:s.type==="transform"||s.type==="reading-choice"||s.type==="gapped"?2:1})));
  const byId = Object.fromEntries(all.map(q=>[q.id,q]));
- let state = {name:"", answers:{}, startedAt:0, endAt:0, finishedAt:0};
+ let state = {name:"", email:"", consent:false, answers:{}, startedAt:0, endAt:0, finishedAt:0, emailState:"", emailError:""};
  let active = 0;
  let ticker = null;
  let shared = false;
@@ -35,7 +37,10 @@
  function toggle(view) {["landing","exam","results"].forEach(id=>$(id).hidden=(id!==view));}
  function start() {
   const name=$("studentName").value.trim().slice(0,50);
-  state={name,answers:{},startedAt:Date.now(),endAt:Date.now()+EXAM.durationMinutes*60000,finishedAt:0};
+  const email=$("studentEmail").value.trim().slice(0,180);
+  if(!$("studentEmail").checkValidity()||!email){$("studentEmail").reportValidity();return;}
+  if(!$("reportConsent").checked){alert("Please agree to sending your result and answers to the teacher before starting.");return;}
+  state={name,email,consent:true,answers:{},startedAt:Date.now(),endAt:Date.now()+EXAM.durationMinutes*60000,finishedAt:0,emailState:"",emailError:""};
   shared=false;history.replaceState(null,"",location.pathname+location.search);
   active=0;save();openExam();
  }
@@ -134,12 +139,80 @@
   const unanswered=all.length-all.filter(q=>hasAnswer(q.id)).length;
   if(!auto&&unanswered>0&&!window.confirm("You still have "+unanswered+" unanswered question"+(unanswered===1?"":"s")+". Finish and mark now?"))return;
   state.finishedAt=Date.now();save();if(ticker)clearInterval(ticker);openResults();
+  if(state.email&&state.consent)sendReport();
+ }
+ function fullAnswerText() {
+   const lines=[];
+   EXAM.sections.forEach((s,i)=>{
+     lines.push("PART "+(i+1)+" — "+s.title);
+     s.questions.forEach(q=>{
+       const raw=state.answers[q.id];
+       const student=hasAnswer(q.id)?(q.type==="reading-choice"?String.fromCharCode(65+Number(raw))+" - "+q.options[Number(raw)]:String(raw)):"(blank)";
+       const correct=expected(q);
+       const prompt=q.original||q.stem||"Gap "+q.id;
+       lines.push("Q"+q.id+": "+prompt);
+       lines.push("Student: "+student+" | Correct: "+correct+" | Marks: "+mark(q,raw)+"/"+q.max);
+       lines.push("Explanation: "+q.why);
+       lines.push("");
+     });
+   });
+   return lines.join("\n");
+ }
+ function emailStatusView() {
+   const hasConsent=!!(state.email&&state.consent);
+   $("emailDestination").textContent=hasConsent?"Student email: "+state.email+" · Report destination: teacher's inbox.":"This attempt was not registered for automatic email.";
+   const button=$("retryEmailBtn"),status=$("emailStatus");
+   button.hidden=!hasConsent||state.emailState==="sending"||state.emailState==="submitted";
+   button.disabled=state.emailState==="sending";
+   const messages={
+     "":"Email delivery has not been attempted.",
+     sending:"Submitting the complete answer report to the email service...",
+     submitted:"Report accepted by the email service. Delivery may require a one-time email activation by the teacher; please also keep the shareable results link.",
+     failed:"Could not submit the email report. Your results are still saved here. Try again or copy the report manually."
+   };
+   status.textContent=(messages[state.emailState]||messages[""])+(state.emailError?" "+state.emailError:"");
+ }
+ async function sendReport() {
+   if(shared||!state.consent||!state.email||!state.finishedAt||state.emailState==="sending"||state.emailState==="submitted")return;
+   state.emailState="sending";state.emailError="";save();emailStatusView();
+   const rep=scoreReport();
+   const body={
+     _subject:"B2 English mock result - "+(state.name||"Student")+" - "+rep.got+"/50",
+     _replyto:state.email,
+     _captcha:"false",
+     _template:"table",
+     Student_Name:state.name||"(not provided)",
+     Student_Email:state.email,
+     Score:rep.got+" / 50 ("+Math.round(rep.got/50*100)+"%)",
+     Answered:rep.answered+" / 37",
+     Finished_At:new Date(state.finishedAt).toISOString(),
+     Section_Breakdown:rep.sections.map((s,i)=>(i+1)+". "+s.title+": "+s.got+"/"+s.max).join(" | "),
+     Complete_Answer_Review:fullAnswerText()
+   };
+   try{
+      const controller=new AbortController();
+      const timeout=setTimeout(()=>controller.abort(),20000);
+      let response;
+      try{
+        response=await fetch(REPORT_API,{method:"POST",headers:{"Content-Type":"application/json","Accept":"application/json"},body:JSON.stringify(body),signal:controller.signal});
+      }finally{clearTimeout(timeout);}
+      const data=await response.json();
+      if(!response.ok||!(data.success===true||data.success==="true")){
+        throw new Error(String(data.message||"The email service rejected this submission.").slice(0,220));
+      }
+      state.emailState="submitted";
+      state.emailError=/activat|confirm/i.test(String(data.message||""))?" Check the teacher's inbox for a one-time activation email.":"";
+   }catch(e){
+      state.emailState="failed";
+      state.emailError=String(e.message||"Network error.").slice(0,230);
+   }
+   save();emailStatusView();
  }
  function summaryText() {
   const rep=scoreReport();
-  let lines=["B2 First-style 50-minute Practice Mock","Student: "+(state.name||"Not supplied"),"Score: "+rep.got+" / 50 ("+Math.round(rep.got/50*100)+"%)","Answered: "+rep.answered+" / 37","","Section breakdown:"];
+  let lines=["B2 First-style 50-minute Practice Mock","Student: "+(state.name||"Not supplied"),"Student email: "+(state.email||"Not provided"),"Score: "+rep.got+" / 50 ("+Math.round(rep.got/50*100)+"%)","Answered: "+rep.answered+" / 37","","Section breakdown:"];
   rep.sections.forEach((s,i)=>lines.push((i+1)+". "+s.title+": "+s.got+"/"+s.max));
-  lines.push("","Questions to review:");
+  lines.push("","COMPLETE ANSWER RECORD",fullAnswerText(),"Questions to review:");
   const incorrect=all.filter(q=>mark(q,state.answers[q.id])<q.max);
   if(!incorrect.length)lines.push("None — all answers correct.");
   else incorrect.forEach(q=>lines.push("Q"+q.id+" — wrote: "+(state.answers[q.id]||"blank")+" | expected: "+expected(q)));
@@ -182,6 +255,7 @@
    }).join("")+'</div></details>';
   }).join("");
   $("copyLinkBtn").disabled=false;
+  emailStatusView();
   $("copyStatus").textContent=shared?"You're viewing a shared report.":"";
   window.scrollTo(0,0);
  }
@@ -189,13 +263,14 @@
  function restart() {
   if(!window.confirm("Start a fresh attempt? Your current answers and report on this device will be replaced."))return;
   try{localStorage.removeItem(KEY);}catch(e){}
-  state={name:"",answers:{},startedAt:0,endAt:0,finishedAt:0};
+  state={name:"",email:"",consent:false,answers:{},startedAt:0,endAt:0,finishedAt:0,emailState:"",emailError:""};
   if(ticker)clearInterval(ticker);
   shared=false;
   history.replaceState(null,"",location.pathname+location.search);
-  $("studentName").value="";$("resumeBtn").hidden=true;toggle("landing");window.scrollTo(0,0);
+  $("studentName").value="";$("studentEmail").value="";$("reportConsent").checked=false;$("resumeBtn").hidden=true;toggle("landing");window.scrollTo(0,0);
  }
  $("startBtn").addEventListener("click",start);
+ $("retryEmailBtn").addEventListener("click",sendReport);
  $("resumeBtn").addEventListener("click",resume);
  $("studentName").addEventListener("keydown",e=>{if(e.key==="Enter")start();});
  $("sectionNav").addEventListener("click",e=>{const b=e.target.closest("[data-section]");if(b)navigate(Number(b.dataset.section));});
@@ -216,7 +291,7 @@
   if(location.hash.startsWith("#result=")){
    const report=linkDecode(decodeURIComponent(location.hash.slice(8)));
    if(report && typeof report.answers==="object" && report.answers && report.finishedAt){
-    state={name:String(report.name||"").slice(0,50),answers:report.answers,startedAt:0,endAt:0,finishedAt:report.finishedAt};
+    state={name:String(report.name||"").slice(0,50),answers:report.answers,startedAt:0,endAt:0,finishedAt:report.finishedAt,email:"",consent:false,emailState:"",emailError:""};
     shared=true;openResults();return;
    }
   }
@@ -224,6 +299,8 @@
  const previous=saved();
  if(previous&&previous.startedAt){
   $("studentName").value=previous.name||"";
+  $("studentEmail").value=previous.email||"";
+  $("reportConsent").checked=!!previous.consent;
   $("resumeBtn").hidden=false;
   $("resumeBtn").textContent=previous.finishedAt?"View previous results":"Resume saved exam";
  }

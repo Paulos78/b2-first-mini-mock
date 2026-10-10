@@ -34,11 +34,14 @@
   <div class="start-actions">
    <label for="studentName">Your first name <span>(optional)</span></label>
    <input id="studentName" maxlength="50" autocomplete="given-name" placeholder="e.g. Sofia">
+   <label for="studentEmail">Your email address <span>(required for the report)</span></label>
+   <input id="studentEmail" type="email" maxlength="180" autocomplete="email" required placeholder="you@example.com">
+   <label class="consent-check"><input id="reportConsent" type="checkbox"> <span>I agree that my name, email address, score and complete answers will be sent to the teacher using an external email service when I finish.</span></label>
    <button id="startBtn" class="primary-btn">Start 50-minute exam <span aria-hidden="true">→</span></button>
    <button id="resumeBtn" class="subtle-btn" hidden>Resume saved exam</button>
   </div>
  </section>
- <div class="note-strip"><span aria-hidden="true">ⓘ</span> This is an original, shortened practice mock, not an official Cambridge paper or an official Cambridge score. No listening, speaking or full-length writing paper is included.</div>
+ <div class="note-strip"><span aria-hidden="true">ⓘ</span> This is an original, shortened practice mock, not an official Cambridge paper or an official Cambridge score. No listening, speaking or full-length writing paper is included. Scores, answers and the email address you enter will be sent to the teacher via FormSubmit. Your email is used for identifying your attempt and is not published.</div>
 </main>
 <section id="exam" class="shell exam-layout" hidden>
  <div class="exam-topbar">
@@ -71,6 +74,7 @@
     <div class="score-message"><span id="resultBand" class="result-pill"></span><h2 id="resultHeadline"></h2><p id="resultMessage"></p><p class="disclaimer">Practice score only — this percentage is not a Cambridge English Scale score or an official pass/fail prediction.</p></div>
   </div>
   <div id="sectionScores" class="section-scores"></div>
+  <div class="email-card"><div><h3>Your report has a teacher copy</h3><p id="emailDestination"></p><p id="emailStatus" role="status" aria-live="polite"></p></div><button id="retryEmailBtn" class="outline-btn">Send report to teacher</button></div>
   <div class="share-card"><div><h3>Send your result to your teacher</h3><p>Copy a result link or a text report. Your answers are not uploaded to a server; the link contains your result information, so share it only with people you trust.</p></div><div class="share-buttons"><button id="copyLinkBtn" class="primary-btn">Copy results link</button><button id="copyReportBtn" class="outline-btn">Copy text report</button><button id="printBtn" class="subtle-btn">Print / save PDF</button></div><div id="copyStatus" role="status"></div></div>
   <h2 class="review-title">Answer review &amp; explanations</h2>
   <p class="review-intro">Expand each section to see the correct answers and explanations. A transformation is automatically awarded either 0 or 2 marks based on accepted answers; a human teacher can review alternatives.</p>
